@@ -751,6 +751,32 @@
         }
       }
 
+      /* Small improvement: raise hero title slightly on mobile so it sits higher under the fixed nav */
+      @media (max-width: 768px) {
+        /* Reduce the large generic section top padding for the hero only so the hero heading appears higher */
+        section#hero {
+          padding-top: 72px; /* lower than the generic 110px used for other sections on mobile */
+        }
+
+        /* Nudge the hero content a bit upward for better visual alignment.
+           Use a small translate (kept subtle) so layout remains natural. */
+        .hero-content {
+          transform: translateY(-10px);
+        }
+
+        /* Ensure heading spacing remains comfortable after the nudge */
+        .hero-name {
+          margin-top: 0;
+        }
+      }
+
+      /* Respect reduced-motion: don't apply translate for users who opted out of animations */
+      @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+        .hero-content {
+          transform: none !important;
+        }
+      }
+
       /* Small improvement for larger displays where nav-links are inline */
       @media (min-width: 769px) {
         .nav-links {
