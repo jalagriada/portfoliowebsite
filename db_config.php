@@ -1,0 +1,65 @@
+<?php
+require_once __DIR__ . '/db_config.php';
+
+// JSON response
+header('Content-Type: application/json; charset=utf-8');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+    exit;
+}
+
+// Retrieve and sanitize inputs
+$name = isset($_POST['name']) ? trim($_POST['name']) : '';
+$email = isset($_POST['email']) ? trim($_POST['email']) : '';
+$subject = isset($_POST['subject']) ? trim($_POST['subject']) : '';
+$message = isset($_POST['message']) ? trim($_POST['message']) : '';
+
+$errors = [];
+
+// Basic validation
+if ($name === '') {
+    $errors['name'] = 'Name is required';
+}
+if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors['email'] = 'A valid email is required';
+}
+if ($message === '') {
+    $errors['message'] = 'Message is required';
+}
+
+// Limit lengths
+if (mb_strlen($name) > 255) $errors['name'] = 'Name too long';
+if (mb_strlen($email) > 255) $errors['email'] = 'Email too long';
+if (mb_strlen($subject) > 255) $errors['subject'] = 'Subject too long';
+
+if (!empty($errors)) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'errors' => $errors]);
+    exit;
+}
+
+try {
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $pdo_options);
+
+    $sql = "INSERT INTO `messages` (`name`, `email`, `subject`, `message`) VALUES (:name, :email, :subject, :message)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':name' => $name,
+        ':email' => $email,
+        ':subject' => $subject !== '' ? $subject : null,
+        ':message' => $message,
+    ]);
+
+    $insertId = $pdo->lastInsertId();
+
+    echo json_encode(['success' => true, 'id' => $insertId]);
+    exit;
+} catch (PDOException $e) {
+    // In production, log $e->getMessage() to a file and return a generic message.
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Database error']);
+    exit;
+}
