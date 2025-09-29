@@ -1,57 +1,59 @@
-# John Lagriada — Portfolio Website
+# John Lagriada — Portfolio Website (Web Systems Midterm)
 
-Short note: This is the portfolio website used for my midterm in Web Systems.
+A concise, instructor-friendly portfolio website used as a midterm submission for Web Systems. The site demonstrates a responsive personal portfolio layout, an animated typed hero, JSON-styled info blocks, accessible navigation, and a contact form with AJAX.
 
-## Project Overview
-A personal portfolio website showcasing skills, experience, and contact details for John Lagriada. The site includes a typed hero heading, JSON-styled info blocks, responsive navigation (desktop & mobile), skills and experience sections, a contact form (posts to `contact.php`), and a modal for user feedback.
+## Quick facts
+- **Author**: John Lagriada
+- **Year**: 2025
+- **Stack**: HTML, CSS, Vanilla JS, PHP (contact endpoint expected)
+- **Project folder**: c:\xampp\htdocs\port
 
-## Features
-- Responsive layout for desktop and mobile
-- Smooth typed hero text animation
-- Accessible navigation with keyboard support and focus-visible underline
-- Contact form with client-side validation and AJAX POST
-- Modal feedback UI for form submission and CV actions
-- Themed "JSON" blocks for visual presentation
-
-## Tech Stack
-- HTML5, CSS (inline styles in `index.php`)
-- Vanilla JavaScript (no frameworks)
-- PHP (for form handling: `contact.php` expected)
-- Font Awesome (CDN) for icons
-
-## Important Files
-- `index.php` — Main page with markup, styles, and client-side scripts.
-- `contact.php` — (not included) server-side endpoint to receive form POSTs; recommended to return JSON.
-- `README.md` — This file.
-
-## How to run locally (Windows / XAMPP)
+## How to run (Windows / XAMPP)
 1. Install XAMPP and start Apache.
-2. Place the project folder in your XAMPP `htdocs` directory (e.g. `C:\xampp\htdocs\port`).
-3. Open a browser and visit: http://localhost/port/
-4. If you implement `contact.php`, place it in the same folder and make it return JSON responses for the AJAX form.
+2. Place the project folder in XAMPP `htdocs` (e.g. C:\xampp\htdocs\port).
+3. In a browser visit: http://localhost/port/
+4. Optional: add `contact.php` in the same directory to enable form submission; the front-end sends a POST and expects JSON.
 
-## Notes for contact.php
-- Expect a POST with these fields: `name`, `email`, `subject`, `message`.
-- Recommended JSON responses:
+## Grading checklist (quick reference for instructor)
+- [x] Responsive layout (desktop & mobile) — see CSS media queries in index.php
+- [x] Typed hero animation — check JS near top for typed-text logic
+- [x] Accessible navigation (roles, keyboard, focus-visible) — nav and links in index.php
+- [x] Animated underline only for nav links (no focus box) — CSS using ::after
+- [x] Contact form with client-side validation + AJAX — form id `contactForm` and fetch in JS
+- [x] Modal feedback (OK-only dismissal) — modal markup and window._messageModal API
+- [ ] Server-side contact handler (`contact.php`) — not included; recommended format below
+
+## Notes for contact.php (recommended)
+- Accepts POST: name, email, subject, message.
+- Returns JSON:
   - Success: `{ "success": true }`
   - Validation errors: `{ "success": false, "errors": { "email": "Invalid email" } }`
-- The front-end sends `Accept: application/json` and displays messages in the modal.
+- Front-end sends `Accept: application/json`.
 
-## Customization
-- Edit text strings in `index.php` (hero typed texts are defined in the JS array).
-- Change colors by updating CSS variables near the top of the `<style>` block in `index.php`.
-- Replace icon links with your own social profiles (Contact section).
-- To add a downloadable CV, add a static `cv.pdf` or an endpoint and update the CV button link.
+## Testing checklist (what to look for)
+- Open page, verify typed hero cycles through messages.
+- Click nav links → smooth-scroll to sections; active link gets underline.
+- Resize to mobile and test hamburger open/close and menu behavior.
+- Fill contact form missing fields → modal shows validation message.
+- Submit form → if contact.php present, modal shows success or error based on JSON.
+- Click "Download CV" → placeholder modal appears.
 
-## Accessibility & UX
-- Navigation supports keyboard activation and keyboard-visible underline (focus-visible).
-- Modal requires explicit OK click to dismiss (intentional design).
-- Mobile hamburger toggles and closes on navigation click or outside clicks.
+## What to inspect in code (quick pointers)
+- `index.php`: hero typed effect (requestAnimationFrame loop), modal utility (window._messageModal), contact form handler (fetch to contact.php).
+- CSS: focus-visible handling and animated underline rules; mobile-specific hide rule for JSON blocks.
+- Accessibility: nav has roles, menuitems and keyboard support via JS.
 
-## Academic note
-Prepared as a midterm submission for Web Systems. If reused or modified, please update this README accordingly.
+## Implemented features & UX decisions
+- Focus-visible underline (no surrounding focus box) to meet accessibility and presentation goals.
+- Modal requires explicit OK click to dismiss (per design requirement).
+- Mobile layout centers content and hides decorative JSON blocks for clarity.
 
-## Contact
-Email: johnlagriada@gmail.com
+## Known issues / limitations
+- contact.php is not provided; form submission requires a server endpoint to persist or email messages.
+- CV download is a placeholder; add a static cv.pdf or implement a route to serve the file.
 
+## Contact / Instructor help
+- Email: johnlagriada@gmail.com
+- If you need a quick demo or to test contact submission, I can add contact.php or a sample cv.pdf upon request.
 
+Thank you — please let me know if you want the README shortened further or if you want me to add a sample contact.php.
