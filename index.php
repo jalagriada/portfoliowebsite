@@ -274,6 +274,29 @@
         .json-container {
           display: none !important;
         }
+
+        /* Mobile: raise hero title and CTA so they're not pushed too far down */
+        /* Existing global `section { padding-top: 110px; }` is kept for other sections.
+           We override only the #hero to reduce its top offset on small screens. */
+        #hero {
+          padding-top: 36px; /* reduced from 110px so title/button appear higher on mobile */
+        }
+
+        .hero-content {
+          gap: 10px; /* tighten vertical spacing between heading and other hero elements */
+          padding-top: 4px; /* small nudge to pull content upward slightly */
+        }
+
+        /* make CTA sit closer to the heading on mobile */
+        .hero-content .cta-button {
+          margin-top: 8px;
+        }
+
+        /* ensure typed heading still readable but not huge */
+        .hero-name {
+          font-size: 1.25rem; /* slightly larger than prior 1rem while still mobile-friendly */
+          line-height: 1.08;
+        }
       }
       /* --- END underline-only styles --- */
 
@@ -620,6 +643,30 @@
         margin-top: 50px;
       }
 
+      /* Performance / compositor hints for smoother 60fps scrolling & animations */
+      html, body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-overflow-scrolling: touch; /* native momentum on iOS */
+        scroll-behavior: auto; /* use JS controlled smooth scroll so we can guarantee timing */
+        touch-action: pan-y; /* avoid accidental gesture blocking (allows vertical scroll) */
+      }
+
+      /* Ensure animated elements are promoted to their own layers */
+      .fade-in,
+      .json-container,
+      .hero-name,
+      .skill-item,
+      .experience-item,
+      .contact-info,
+      .social-links,
+      .download-cv,
+      .cta-button {
+        will-change: opacity, transform;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+      }
+
       /* Responsive */
       @media (max-width: 768px) {
         .about-content,
@@ -753,6 +800,29 @@
         /* Hide JSON containers completely on mobile devices */
         .json-container {
           display: none !important;
+        }
+
+        /* Mobile: raise hero title and CTA so they're not pushed too far down */
+        /* Existing global `section { padding-top: 110px; }` is kept for other sections.
+           We override only the #hero to reduce its top offset on small screens. */
+        #hero {
+          padding-top: 36px; /* reduced from 110px so title/button appear higher on mobile */
+          margin-top: -100px; /* small nudge to avoid too much space above hero on small screens */}
+
+        .hero-content {
+          gap: 10px; /* tighten vertical spacing between heading and other hero elements */
+          padding-top: 4px; /* small nudge to pull content upward slightly */
+        }
+
+        /* make CTA sit closer to the heading on mobile */
+        .hero-content .cta-button {
+          margin-top: 8px;
+        }
+
+        /* ensure typed heading still readable but not huge */
+        .hero-name {
+          font-size: 1.25rem; /* slightly larger than prior 1rem while still mobile-friendly */
+          line-height: 1.08;
         }
       }
 
@@ -1272,7 +1342,7 @@
         ];
 
         // Configuration: adjust to taste
-        const charsPerSecond = 30; // effective typing speed (chars/sec)
+        const charsPerSecond = 60; // effective typing speed (chars/sec)
         const delCharsPerSecond = 60; // deleting speed (chars/sec) - faster for snappier deletes
         const pauseAfterType = 1400; // ms to pause after typing full string
         const pauseAfterDelete = 350; // ms to pause after deleting before next string
@@ -1285,7 +1355,7 @@
         let mode = "typing"; // typing | pauseAfterType | deleting | pauseAfterDelete
         let lastTime = performance.now();
         let accum = 0;
-        let pauseRemaining = 0;
+        let pauseRemaining = 0; 
 
         // Helper to set displayed text once (keeps layout stable)
         function setText(s) {
@@ -1354,22 +1424,80 @@
         requestAnimationFrame(step);
       })();
 
-      // Smooth scrolling for navigation links
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener("click", function (e) {
-          // If link is only a hash to '#', ignore
-          const targetId = this.getAttribute("href");
-          if (!targetId || targetId === "#") return;
-          e.preventDefault();
-          const targetElement = document.querySelector(targetId);
-          if (targetElement) {
-            window.scrollTo({
-              top: targetElement.offsetTop - 70,
-              behavior: "smooth",
-            });
+      // Replace previous "Smooth scrolling for navigation links" with a high-performance RAF-based scroller.
+      (function () {
+        // time-based easing that is frame-rate independent
+        function easeOutCubic(t) {
+          return 1 - Math.pow(1 - t, 3);
+        }
+
+        function smoothScrollTo(targetY, duration = 450) {
+          const startY = window.scrollY || window.pageYOffset;
+          const maxScroll = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) - window.innerHeight;
+          const destY = Math.min(Math.max(0, targetY), maxScroll);
+          const delta = destY - startY;
+          if (Math.abs(delta) < 1) {
+            // snap if already very close
+            window.scrollTo(0, destY);
+            return Promise.resolve();
           }
+
+          return new Promise((resolve) => {
+            const start = performance.now();
+            function step(now) {
+              const elapsed = now - start;
+              const t = Math.min(1, elapsed / duration);
+              const eased = easeOutCubic(t);
+              window.scrollTo(0, Math.round(startY + delta * eased));
+              if (t < 1) {
+                requestAnimationFrame(step);
+              } else {
+                resolve();
+              }
+            }
+            requestAnimationFrame(step);
+          });
+        }
+
+        // Use optimized click handler for in-page anchors
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            const href = this.getAttribute("href");
+            if (!href || href === "#") return;
+            const targetEl = document.querySelector(href);
+            if (!targetEl) return;
+            e.preventDefault();
+            // compute target position (account for fixed header)
+            const headerOffset = 70;
+            const targetY = Math.max(0, targetEl.getBoundingClientRect().top + window.scrollY - headerOffset);
+            // start smooth scroll; we don't await so UI stays responsive
+            smoothScrollTo(targetY, 520);
+            // immediate a11y/UX: mark link active for instant feedback
+            document.querySelectorAll(".nav-links a").forEach(l => l.classList.remove("active"));
+            this.classList.add("active");
+            // close mobile menu if open (same UX as before)
+            const navLinksParent = document.querySelector(".nav-links");
+            const navToggle = document.querySelector(".nav-toggle");
+            if (navLinksParent && navLinksParent.classList.contains("open")) {
+              navLinksParent.classList.remove("open");
+              if (navToggle) {
+                navToggle.classList.remove("open");
+                navToggle.setAttribute("aria-expanded", "false");
+              }
+            }
+          }, { passive: true }); // passive for best scrolling perf when possible
         });
-      });
+
+        // Register no-op passive listeners so browser knows touch/wheel won't block JS; this avoids some jank on mobile
+        // These don't change behavior but declare intent to the browser.
+        try {
+          window.addEventListener("touchstart", () => {}, { passive: true });
+          window.addEventListener("touchmove", () => {}, { passive: true });
+          window.addEventListener("wheel", () => {}, { passive: true });
+        } catch (e) {
+          // some older browsers may throw on passive option - ignore
+        }
+      })();
 
       // --- Modal utility ---
       (function () {
