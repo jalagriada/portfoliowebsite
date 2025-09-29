@@ -24,6 +24,11 @@
         --bg-darker: #ffffff;
         --text-light: #000000;
         --muted-border: #e6e6e6;
+
+        /* Fade-in animation (minimal, performant) */
+        --fade-translate: 18px;
+        --fade-duration: 600ms;
+        --fade-ease: cubic-bezier(.2,.8,.2,1);
       }
 
       * {
@@ -751,32 +756,6 @@
         }
       }
 
-      /* Small improvement: raise hero title slightly on mobile so it sits higher under the fixed nav */
-      @media (max-width: 768px) {
-        /* Reduce the large generic section top padding for the hero only so the hero heading appears higher */
-        section#hero {
-          padding-top: 72px; /* lower than the generic 110px used for other sections on mobile */
-        }
-
-        /* Nudge the hero content a bit upward for better visual alignment.
-           Use a small translate (kept subtle) so layout remains natural. */
-        .hero-content {
-          transform: translateY(-10px);
-        }
-
-        /* Ensure heading spacing remains comfortable after the nudge */
-        .hero-name {
-          margin-top: 0;
-        }
-      }
-
-      /* Respect reduced-motion: don't apply translate for users who opted out of animations */
-      @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-        .hero-content {
-          transform: none !important;
-        }
-      }
-
       /* Small improvement for larger displays where nav-links are inline */
       @media (min-width: 769px) {
         .nav-links {
@@ -873,121 +852,37 @@
       }
       /* ========== end modal styles ========== */
 
-      /* ========== ADDED: Animations & utility classes ========== */
-      @media (prefers-reduced-motion: no-preference) {
-        /* subtle entrance animation for sections / containers */
-        .animate-on-scroll {
-          opacity: 0;
-          transform: translateY(12px) scale(0.995);
-          transition: opacity 520ms cubic-bezier(.2,.8,.2,1), transform 520ms cubic-bezier(.2,.8,.2,1);
-          will-change: transform, opacity;
-        }
-        .animate-on-scroll.in-view {
-          opacity: 1;
-          transform: none;
-        }
-
-        /* stagger-ready items (child elements will receive inline transition delays) */
-        .stagger-child > * {
-          opacity: 0;
-          transform: translateY(8px);
-          transition: opacity 420ms ease, transform 420ms ease;
-          will-change: opacity, transform;
-        }
-        .stagger-child.in-view > * {
-          opacity: 1;
-          transform: none;
-        }
-
-        /* hero entrance */
-        .hero-content.animate-on-scroll { transition-duration: 680ms; transition-timing-function: cubic-bezier(.16,.9,.3,1); }
-
-        /* logo micro-pop */
-        .logo {
-          display: inline-block;
-          transform-origin: center;
-          transition: transform 420ms cubic-bezier(.2,.8,.2,1), opacity 420ms;
-          opacity: 0.98;
-        }
-        .logo.pop {
-          animation: logoPop 720ms cubic-bezier(.2,.8,.2,1) both;
-        }
-        @keyframes logoPop {
-          0% { transform: scale(0.92); opacity: 0.6; }
-          60% { transform: scale(1.08); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* nav links subtle slide and fade */
-        .nav-links a {
-          transition: color 220ms ease, transform 200ms ease;
-        }
-        .nav-links a:hover, .nav-links a:focus {
-          transform: translateY(-3px);
-        }
-
-        /* CTA buttons: lift on hover and slightly depress on active */
-        .cta-button {
-          transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms;
-        }
-        .cta-button:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        }
-        .cta-button:active {
-          transform: translateY(-1px) scale(0.997);
-        }
-
-        /* JSON line micro-fade (we target .json-container .json-line in JS for stagger delays) */
-        .json-container .json-line {
-          opacity: 0;
-          transform: translateY(6px);
-          transition: opacity 360ms ease, transform 360ms ease;
-        }
-        .json-container.in-view .json-line {
-          opacity: 1;
-          transform: none;
-        }
-
-        /* skill items pop-in */
-        .skill-item {
-          opacity: 0;
-          transform: translateY(8px) scale(0.995);
-          transition: opacity 420ms cubic-bezier(.2,.8,.2,1), transform 420ms cubic-bezier(.2,.8,.2,1);
-        }
-        .skill-item.in-view {
-          opacity: 1;
-          transform: none;
-        }
-
-        /* modal subtle lift (already uses transitions; add slight easing) */
-        .modal-overlay[aria-hidden="false"] .modal {
-          transition: transform 240ms cubic-bezier(.2,.8,.2,1), box-shadow 240ms;
-        }
+      /* Fade-in animation (minimal, performant) */
+      /* Replaced previous fade-in block with one that respects reduced-motion and is reusable */
+      :root {
+        --fade-translate: 18px;
+        --fade-duration: 600ms;
+        --fade-ease: cubic-bezier(.2,.8,.2,1);
       }
-
-      /* Respect reduced motion preferences */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(var(--fade-translate));
+        transition: opacity var(--fade-duration) var(--fade-ease), transform var(--fade-duration) var(--fade-ease);
+        will-change: opacity, transform;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: none;
+      }
       @media (prefers-reduced-motion: reduce) {
-        .animate-on-scroll,
-        .stagger-child > *,
-        .json-container .json-line,
-        .skill-item,
-        .logo,
-        .cta-button,
-        .nav-links a,
-        .modal {
-          transition: none !important;
-          animation: none !important;
-          transform: none !important;
+        .fade-in,
+        .fade-in.visible {
+          transition: none;
+          transform: none;
+          opacity: 1;
         }
       }
-      /* ========== END ADDED ANIMATIONS ========== */
     </style>
   </head>
   <body>
     <!-- Navigation -->
     <nav role="navigation" aria-label="Main navigation">
-      <div class="container nav-container animate-on-scroll">
+      <div class="container nav-container">
         <div class="nav-left">
           <div class="logo">JATL</div>
           <!-- Mobile hamburger toggle -->
@@ -1023,16 +918,16 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="hero" class="animate-on-scroll">
+    <section id="hero">
       <div class="container">
-        <div class="hero-content animate-on-scroll">
+        <div class="hero-content">
           <!-- replaced static heading with a typed element -->
           <h1 class="hero-name" aria-live="polite">
             <span id="typed-text" aria-hidden="false"></span
             ><span class="typed-cursor" aria-hidden="true"></span>
           </h1>
           
-          <div class="json-container animate-on-scroll">
+          <div class="json-container">
             <div class="json-line">
               <span class="json-bracket">{</span>
             </div>
@@ -1063,11 +958,11 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="animate-on-scroll">
+    <section id="about">
       <div class="container">
         <h2 class="section-title">About Me</h2>
         <div class="about-content">
-          <div class="json-container animate-on-scroll">
+          <div class="json-container">
             <div class="json-line">
               <span class="json-bracket">{</span>
             </div>
@@ -1116,7 +1011,7 @@
     </section>
 
     <!-- Skills Section -->
-    <section id="skills" class="animate-on-scroll">
+    <section id="skills">
       <div class="container">
         <h2 class="section-title">Skills & Expertise</h2>
         <div class="skills-content">
@@ -1132,7 +1027,7 @@
               routinely use Burp Suite and Linux security tools during assessments and participate in bug
               bounty programs to stay sharp.
             </p>
-            <div class="json-container animate-on-scroll" style="margin-top: 20px;">
+            <div class="json-container" style="margin-top: 20px;">
               <div class="json-line">
                 <span class="json-bracket">{</span>
               </div>
@@ -1167,19 +1062,15 @@
             <div class="skills-grid">
               <div class="skill-category">
                 <h3>Technical Skills</h3>
-                <div class="skill-item animate-on-scroll">
-                  <i class="fas fa-check"></i>
-                  <span>Web Application Security Testing</span>
-                </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Vulnerability Assessment</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Penetration Testing</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Security Research</span>
                 </div>
@@ -1187,19 +1078,19 @@
 
               <div class="skill-category">
                 <h3>Tools & Platforms</h3>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Burp Suite</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Linux Security Tools</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>HackerOne</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Google VRP</span>
                 </div>
@@ -1207,19 +1098,19 @@
 
               <div class="skill-category">
                 <h3>Soft Skills</h3>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Problem Solving</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Attention to Detail</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Persistence</span>
                 </div>
-                <div class="skill-item animate-on-scroll">
+                <div class="skill-item">
                   <i class="fas fa-check"></i>
                   <span>Communication</span>
                 </div>
@@ -1231,10 +1122,10 @@
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="animate-on-scroll">
+    <section id="experience">
       <div class="container">
         <h2 class="section-title">Experience & Resume</h2>
-        <div class="experience-item animate-on-scroll">
+        <div class="experience-item">
           <h3 class="experience-title">Security Researcher / Bug Bounty Hunter</h3>
           <p class="experience-company">HackerOne & Various Bug Bounty Programs</p>
           <p class="experience-date">2025 - Present</p>
@@ -1245,7 +1136,7 @@
           </p>
         </div>
 
-        <div class="experience-item animate-on-scroll">
+        <div class="experience-item">
           <h3 class="experience-title">Independent Security Research</h3>
           <p class="experience-company">Personal Projects & Learning</p>
           <p class="experience-date">2018 - 2025</p>
@@ -1256,7 +1147,7 @@
           </p>
         </div>
 
-        <div class="json-container animate-on-scroll" style="margin-top: 40px;">
+        <div class="json-container" style="margin-top: 40px;">
           <div class="json-line">
             <span class="json-bracket">{</span>
           </div>
@@ -1274,7 +1165,7 @@
           </div>
         </div>
 
-        <div class="download-cv animate-on-scroll">
+        <div class="download-cv">
           <a href="#" class="cta-button">
             <i class="fas fa-download"></i> Download CV
           </a>
@@ -1283,7 +1174,7 @@
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="animate-on-scroll">
+    <section id="contact">
       <div class="container">
         <h2 class="section-title">Contact Me</h2>
         <div class="contact-container">
@@ -1292,7 +1183,7 @@
               <i class="fas fa-envelope"></i>
               <span>johnlagriada@gmail.com</span>
             </div>
-            <div class="json-container animate-on-scroll">
+            <div class="json-container">
               <div class="json-line">
                 <span class="json-bracket">{</span>
               </div>
@@ -1320,7 +1211,7 @@
             </div>
           </div>
 
-          <div class="contact-form animate-on-scroll">
+          <div class="contact-form">
             <!-- Updated form: includes name attributes and posts to contact.php -->
             <form id="contactForm" action="contact.php" method="post" novalidate>
               <div class="form-group">
@@ -1347,11 +1238,11 @@
     </section>
 
     <!-- Footer -->
-     <footer>
-       <div class="container">
-         <p>&copy; 2025 John Lagriada. All rights reserved.</p>
-       </div>
-     </footer>
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 John Lagriada. All rights reserved.</p>
+      </div>
+    </footer>
 
     <!-- Modal HTML (used for contact/CV feedback) -->
     <div id="messageModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
@@ -1726,74 +1617,46 @@
         }
       })();
 
-      /* ========== REPLACED: IntersectionObserver-based reveal + repeatable fade logic ========== */
+      // Minimal fade-on-scroll using IntersectionObserver.
+      // Toggling .visible so elements fade every time they enter/leave viewport.
       (function () {
-        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        // selector expanded so common content blocks animate
+        const selector = [
+          'section',
+          'footer',
+          '.json-container',
+          '.hero-name',
+          '.skill-item',
+          '.experience-item',
+          '.contact-info',
+          '.social-links',
+          '.download-cv',
+          '.cta-button'
+        ].join(', ');
 
-        const observerOptions = { root: null, rootMargin: '0px 0px -12% 0px', threshold: 0.12 };
+        const nodes = Array.from(document.querySelectorAll(selector));
+        if (!nodes.length) return;
 
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            const el = entry.target;
-            if (entry.isIntersecting) {
-              // add visible class (fade in)
-              el.classList.add('in-view');
-              // stagger child lines (json-lines, skill items, immediate children)
-              const jsonLines = el.querySelectorAll && el.querySelectorAll('.json-line');
-              if (jsonLines && jsonLines.length) {
-                jsonLines.forEach((ln, i) => ln.style.transitionDelay = `${i * 60}ms`);
-              }
-              const skillItems = el.querySelectorAll && el.querySelectorAll('.skill-item');
-              if (skillItems && skillItems.length) {
-                skillItems.forEach((si, i) => si.style.transitionDelay = `${i * 45}ms`);
-              }
-              // immediate children stagger
-              const children = el.querySelectorAll && el.querySelectorAll(':scope > *');
-              if (children && children.length) {
-                children.forEach((c, i) => c.style.transitionDelay = `${Math.min(i * 55, 480)}ms`);
-              }
-            } else {
-              // remove visible class when element leaves viewport -> fade out (re-trigger on re-enter)
-              el.classList.remove('in-view');
-              // clear any per-item transitionDelay to keep next reveal consistent
-              (el.querySelectorAll && el.querySelectorAll('.json-line, .skill-item, :scope > *') || []).forEach((n) => {
-                n.style.transitionDelay = '';
-              });
-            }
-          });
-        }, observerOptions);
-
-        // Observe targets: nav, sections, hero content, json-container, skill-item and experience items, contact form, download-cv
-        const targets = [
-          ...document.querySelectorAll('nav'),
-          ...document.querySelectorAll('section'),
-          ...document.querySelectorAll('.hero-content'),
-          ...document.querySelectorAll('.json-container'),
-          ...document.querySelectorAll('.skill-item'),
-          ...document.querySelectorAll('.experience-item'),
-          ...document.querySelectorAll('.contact-form'),
-          ...document.querySelectorAll('.download-cv'),
-          ...document.querySelectorAll('.nav-container')
-        ];
-
-        targets.forEach((t) => {
-          // ensure baseline class present
-          if (!t.classList.contains('animate-on-scroll')) t.classList.add('animate-on-scroll');
-          // mark as possible stagger container
-          if (t.childElementCount > 1) t.classList.add('stagger-child');
-          observer.observe(t);
+        // Add initial hidden state (skip elements that should be visible immediately if needed)
+        nodes.forEach(n => {
+          // don't override elements that already have inline visibility control
+          if (!n.classList.contains('fade-in')) n.classList.add('fade-in');
         });
 
-        // Small first-paint micro-pop for logo (keeps earlier feel)
-        const logo = document.querySelector('.logo');
-        if (logo) {
-          setTimeout(() => {
-            logo.classList.add('pop');
-            setTimeout(() => logo.classList.remove('pop'), 900);
-          }, 260);
-        }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            } else {
+              entry.target.classList.remove('visible');
+            }
+          });
+        }, {
+          threshold: 0.10
+        });
+
+        nodes.forEach(n => io.observe(n));
       })();
-      /* ========== END reveal + stagger logic ========== */
     </script>
   </body>
 </html>
