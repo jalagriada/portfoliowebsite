@@ -1,16 +1,19 @@
 <?php
-// Removed server-side UA detection and conditional html class
+// Minimal variables for easy edits
+$name = 'John Lagriada';
+$email = 'johnlagriada@gmail.com';
+$github = 'https://github.com/jalagriada';
+$facebook = 'https://facebook.com/johnlagriada';
+$year = date('Y');
+header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>John Lagriada</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <title><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
       :root {
         /* Light theme: white background, black text */
@@ -1251,7 +1254,7 @@
           <div>
             <div class="contact-info">
               <i class="fas fa-envelope"></i>
-              <span>johnlagriada@gmail.com</span>
+              <span><?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></span>
             </div>
             <div class="json-container">
               <div class="json-line">
@@ -1272,10 +1275,10 @@
             </div>
 
             <div class="social-links">
-              <a href="https://github.com/jalagriada" target="_blank" rel="noopener noreferrer">
+              <a href="<?php echo htmlspecialchars($github, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
                 <i class="fab fa-github"></i>
               </a>
-              <a href="https://facebook.com/johnlagriada" target="_blank" rel="noopener noreferrer">
+              <a href="<?php echo htmlspecialchars($facebook, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
                 <i class="fab fa-facebook"></i>
               </a>
             </div>
@@ -1310,7 +1313,7 @@
     <!-- Footer -->
     <footer>
       <div class="container">
-        <p>&copy; 2025 John Lagriada. All rights reserved.</p>
+        <p>&copy; <?php echo htmlspecialchars($year, ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>. All rights reserved.</p>
       </div>
     </footer>
 
@@ -1331,38 +1334,45 @@
     </div>
 
     <script>
+      // small JS object with server-side values (safely quoted)
+      const PHP = {
+        name: <?php echo json_encode($name, JSON_UNESCAPED_UNICODE); ?>,
+        email: <?php echo json_encode($email); ?>,
+        github: <?php echo json_encode($github); ?>,
+        facebook: <?php echo json_encode($facebook); ?>,
+        year: <?php echo json_encode($year); ?>
+      };
+    </script>
+
+    <script>
       // Smooth, 60fps-synced typing effect using requestAnimationFrame and time-based stepping.
       (function () {
         const el = document.getElementById("typed-text");
         if (!el) return;
 
         const texts = [
-          "Hi! I'm John Lagriada",
+          `Hi! I'm ${PHP.name}`,
           "I'm a Security Researcher"
         ];
 
-        // Configuration: adjust to taste
-        const charsPerSecond = 60; // effective typing speed (chars/sec)
-        const delCharsPerSecond = 60; // deleting speed (chars/sec) - faster for snappier deletes
-        const pauseAfterType = 1400; // ms to pause after typing full string
-        const pauseAfterDelete = 350; // ms to pause after deleting before next string
-
+        const charsPerSecond = 60;
+        const delCharsPerSecond = 60;
+        const pauseAfterType = 1400;
+        const pauseAfterDelete = 350;
         const charDuration = 1000 / charsPerSecond;
         const delCharDuration = 1000 / delCharsPerSecond;
 
         let textIndex = 0;
         let charIndex = 0;
-        let mode = "typing"; // typing | pauseAfterType | deleting | pauseAfterDelete
+        let mode = "typing";
         let lastTime = performance.now();
         let accum = 0;
-        let pauseRemaining = 0; 
+        let pauseRemaining = 0;
 
-        // Helper to set displayed text once (keeps layout stable)
         function setText(s) {
           el.textContent = s;
         }
 
-        // Ensure initial state
         setText("");
 
         function step(now) {
@@ -1371,7 +1381,6 @@
 
           if (mode === "typing") {
             accum += dt;
-            // advance by however many chars fit into accumulated time
             while (accum >= charDuration) {
               accum -= charDuration;
               charIndex++;
@@ -1409,17 +1418,14 @@
             pauseRemaining -= dt;
             if (pauseRemaining <= 0) {
               mode = "typing";
-              // ensure charIndex starts from 0 for next text
               charIndex = 0;
               accum = 0;
             }
           }
 
-          // request next frame
           requestAnimationFrame(step);
         }
 
-        // Start loop synced to display refresh
         lastTime = performance.now();
         requestAnimationFrame(step);
       })();
@@ -1508,6 +1514,44 @@
 
         let lastFocused = null;
 
+        // Added: store scroll position so we can restore after closing modal
+        let _savedScrollY = 0;
+        // Helper to lock/unlock page scroll in a way that works on desktop and mobile (iOS-friendly)
+        function lockScroll() {
+          // save current scroll position
+          _savedScrollY = window.scrollY || window.pageYOffset || 0;
+          // apply styles to body to prevent scrolling and avoid layout shift
+          document.body.style.position = "fixed";
+          // use a real interpolated value so the page stays in place
+          document.body.style.top = `-${_savedScrollY}px`;
+          document.body.style.left = "0";
+          document.body.style.right = "0";
+          document.body.style.overflow = "hidden";
+          // also prevent touchmove on document to be extra-safe on some mobile browsers
+          document.addEventListener("touchmove", preventTouchMove, { passive: false });
+        }
+        function unlockScroll() {
+          // remove touchmove prevention
+          document.removeEventListener("touchmove", preventTouchMove, { passive: false });
+          // restore body styles
+          document.body.style.position = "";
+          document.body.style.top = "";
+          document.body.style.left = "";
+          document.body.style.right = "";
+          document.body.style.overflow = "";
+          // restore scroll position
+          window.scrollTo(0, _savedScrollY);
+        }
+        function preventTouchMove(e) {
+          // allow interactions inside the modal itself (overlay contains modal), but block touchmove from propagating
+          if (!overlay) return;
+          const modal = overlay.querySelector('.modal');
+          if (modal && modal.contains(e.target)) {
+            return;
+          }
+          e.preventDefault();
+        }
+
         // showModal: options ignored — modal must be dismissed by OK button only
         function showModal(title, message /* options ignored */) {
           if (!overlay) return;
@@ -1523,6 +1567,10 @@
 
           // save last focused element and show modal
           lastFocused = document.activeElement;
+
+          // Lock page scroll so background cannot be scrolled on desktop or mobile
+          lockScroll();
+
           overlay.setAttribute("aria-hidden", "false");
 
           // focus OK button so user must click it to dismiss
@@ -1532,6 +1580,10 @@
         function hideModal() {
           if (!overlay) return;
           overlay.setAttribute("aria-hidden", "true");
+
+          // Unlock page scroll and restore previous position
+          unlockScroll();
+
           try {
             if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
           } catch (e) {}
@@ -1718,7 +1770,7 @@
 
         const observerOptions = {
           root: null,
-          rootMargin: "-30% 0px -50% 0px", // trigger when section is roughly in the middle
+          rootMargin: "-30% 0px -50% 0px",
           threshold: 0,
         };
 
@@ -1727,6 +1779,7 @@
             if (entry.isIntersecting) {
               const id = "#" + entry.target.id;
               clearActive();
+              // corrected: use real template interpolation for the selector
               const activeLink = document.querySelector(`.nav-links a[href="${id}"]`);
               if (activeLink) activeLink.classList.add("active");
             }
@@ -1737,6 +1790,7 @@
 
         // On page load, honor hash if present
         if (location.hash) {
+          // corrected: use real template interpolation for the selector
           const link = document.querySelector(`.nav-links a[href="${location.hash}"]`);
           if (link) {
             clearActive();
