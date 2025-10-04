@@ -9,3 +9,4 @@
 - Email: jalagriada@my.cspc.edu.ph
 
 ## Access my website here: https://johnlagriada.netlify.app/
+**Note**: The website hosted on Netlify runs in static mode, meaning it does not support databases or server-side processing.
